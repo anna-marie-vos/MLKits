@@ -44,13 +44,11 @@ function runAnalysis() {
   const testSetSize = 10;
   const [testSet, trainingSet] = splitDataset(outputs, testSetSize);
 
-  let predictedCorrectly = 0;
-  testSet.map(testPoint => {
-    const bucket = knnAnalysis(trainingSet, testPoint);
+  const accuracy = _.chain(testSet)
+    .filter(testPoint => knnAnalysis(trainingSet, testPoint) === testPoint[3])
+    .size()
+    .divide(testSetSize)
+    .value();
 
-    if (bucket === testPoint[3]) {
-      predictedCorrectly++;
-    }
-  });
-  console.log({ accuracy: predictedCorrectly / testSetSize }, "%");
+  console.log({ accuracy });
 }
