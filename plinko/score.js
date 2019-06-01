@@ -1,10 +1,12 @@
 const outputs = [];
 
-const point_x = 300;
+function similarity(point, testPoint) {
+  const match = _.chain(point)
+    .zip(testPoint)
+    .map(([point_y, point_x]) => (point_y - point_x) ** 2)
+    .sum()
+    .value();
 
-function similarity(point_y, testPoint) {
-  const point_x = testPoint[0];
-  const match = Math.abs(point_y - point_x);
   return match;
 }
 
@@ -19,8 +21,7 @@ function splitDataset(data, testCount) {
 function knnAnalysis(data, testPoint, k) {
   const predictedResult = _.chain(outputs)
     .map(row => {
-      const bucket = row[3];
-      return [similarity(row[0], testPoint), bucket];
+      return [similarity(_.initial(row), testPoint), _.last(row)];
     })
     .sortBy(row => row[0])
     .slice(0, k)
@@ -40,13 +41,15 @@ function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
 }
 
 function runAnalysis() {
-  const testSetSize = 100;
+  const testSetSize = 10;
   const [testSet, trainingSet] = splitDataset(outputs, testSetSize);
 
   _.range(1, 20).forEach(k => {
     const accuracy = _.chain(testSet)
       .filter(
-        testPoint => knnAnalysis(trainingSet, testPoint, k) === testPoint[3]
+        testPoint =>
+          knnAnalysis(trainingSet, _.initial(testPoint), k) ===
+          _.last(testPoint)
       )
       .size()
       .divide(testSetSize)
